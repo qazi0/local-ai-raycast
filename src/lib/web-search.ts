@@ -59,7 +59,14 @@ export async function webSearch(
     throw new Error(`Brave Search returned ${res.status}`);
   }
 
-  const data = (await res.json()) as BraveSearchResponse;
+  let data: BraveSearchResponse;
+  try {
+    data = (await res.json()) as BraveSearchResponse;
+  } catch {
+    throw new Error(
+      "Brave Search returned invalid response data. Try again later.",
+    );
+  }
   const results = data.web?.results ?? [];
 
   return results.slice(0, maxResults).map((r) => ({

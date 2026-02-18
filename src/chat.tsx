@@ -574,7 +574,16 @@ function ChatView(props: LaunchProps<{ launchContext?: ChatLaunchContext }>) {
           createdAt,
           updatedAt: Date.now(),
         };
-        await saveConversation(conversation);
+        try {
+          await saveConversation(conversation);
+        } catch (saveErr) {
+          console.error("[chat] Failed to save conversation:", saveErr);
+          await showToast({
+            style: Toast.Style.Failure,
+            title: "Could not save conversation",
+            message: "Response is visible but may not persist",
+          });
+        }
       } catch (err) {
         if (fullResponse) {
           const partialMessage: ChatMessage = {
@@ -593,7 +602,11 @@ function ChatView(props: LaunchProps<{ launchContext?: ChatLaunchContext }>) {
             createdAt,
             updatedAt: Date.now(),
           };
-          await saveConversation(conversation);
+          try {
+            await saveConversation(conversation);
+          } catch {
+            console.error("[chat] Failed to save partial conversation");
+          }
 
           await showToast({
             style: Toast.Style.Failure,

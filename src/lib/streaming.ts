@@ -17,6 +17,7 @@ export async function* parseSSEStream(
   const reader = stream.getReader();
   const decoder = new TextDecoder();
   let buffer = "";
+  let consecutiveParseFailures = 0;
 
   try {
     while (true) {
@@ -54,8 +55,15 @@ export async function* parseSSEStream(
         let chunk: ChatStreamChunk;
         try {
           chunk = JSON.parse(payload) as ChatStreamChunk;
+          consecutiveParseFailures = 0;
         } catch {
+          consecutiveParseFailures++;
           console.warn("[streaming] Malformed JSON, skipping:", payload);
+          if (consecutiveParseFailures >= 5) {
+            throw new Error(
+              "Server is sending malformed response data. Check that your server supports the OpenAI streaming format.",
+            );
+          }
           continue;
         }
 

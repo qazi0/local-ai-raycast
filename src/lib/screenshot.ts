@@ -73,8 +73,11 @@ export async function readClipboardImage(): Promise<string | null> {
         return filePath;
       }
     }
-  } catch {
-    // Fall through to AppleScript
+  } catch (err) {
+    console.warn(
+      "[screenshot] Clipboard.read() failed, trying AppleScript:",
+      err,
+    );
   }
 
   // Approach 2: AppleScript — extracts raw PNG data from clipboard

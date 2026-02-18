@@ -1,5 +1,9 @@
 # Local AI
 
+<p align="center">
+  <img src="assets/extension-icon.png" alt="Local AI" width="128" />
+</p>
+
 Chat with local LLMs (LM Studio/Ollama/llama.cpp/other) from Raycast - no cloud, no API keys, no subscriptions.
 
 <p align="center">

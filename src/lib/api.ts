@@ -125,7 +125,8 @@ async function fetchOllamaModels(config: ProviderConfig): Promise<Model[]> {
   const url = `${config.baseUrl}/api/tags`;
   try {
     const res = await fetch(url, { signal: AbortSignal.timeout(10000) });
-    if (!res.ok) return fetchModelsGeneric(config);
+    if (res.status === 404) return fetchModelsGeneric(config);
+    if (!res.ok) throw new Error(`Ollama returned ${res.status}`);
 
     const json = (await res.json()) as {
       models: Array<{
@@ -156,8 +157,10 @@ async function fetchOllamaModels(config: ProviderConfig): Promise<Model[]> {
         supportsVision: families.some((f) => VISION_FAMILIES.has(f)),
       };
     });
-  } catch {
-    return fetchModelsGeneric(config);
+  } catch (err) {
+    // Only fall back for errors suggesting the endpoint doesn't exist
+    if (err instanceof TypeError) return fetchModelsGeneric(config);
+    throw translateFetchError(err, config);
   }
 }
 
@@ -169,7 +172,8 @@ async function fetchLmStudioModels(config: ProviderConfig): Promise<Model[]> {
   const url = `${config.baseUrl}/api/v0/models`;
   try {
     const res = await fetch(url, { signal: AbortSignal.timeout(10000) });
-    if (!res.ok) return fetchModelsGeneric(config);
+    if (res.status === 404) return fetchModelsGeneric(config);
+    if (!res.ok) throw new Error(`LM Studio returned ${res.status}`);
 
     const json = (await res.json()) as {
       data: Array<{
@@ -193,8 +197,9 @@ async function fetchLmStudioModels(config: ProviderConfig): Promise<Model[]> {
       maxContextLength: m.max_context_length,
       supportsVision: m.type === "vlm",
     }));
-  } catch {
-    return fetchModelsGeneric(config);
+  } catch (err) {
+    if (err instanceof TypeError) return fetchModelsGeneric(config);
+    throw translateFetchError(err, config);
   }
 }
 
@@ -245,8 +250,9 @@ function prepareMessagesForApi(messages: ChatMessage[]): unknown[] {
           type: "image_url",
           image_url: { url: `data:image/png;base64,${b64}` },
         });
-      } catch {
-        // Skip missing/unreadable images
+      } catch (err) {
+        console.error(`[api] Failed to read image ${imgPath}:`, err);
+        parts.push({ type: "text", text: "[Image failed to load]" });
       }
     }
     return { role: msg.role, content: parts.length > 0 ? parts : msg.content };

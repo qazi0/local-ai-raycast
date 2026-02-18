@@ -62,8 +62,14 @@ function TransformView({ title, systemPrompt }: TextTransformProps) {
           const modelList = await fetchModels(config);
           selectedModel = modelList[0]?.id || "";
         }
-      } catch {
-        // Use whatever model we have
+      } catch (err) {
+        if (!selectedModel) {
+          const msg =
+            err instanceof Error ? err.message : "Cannot connect to server";
+          setIsLoading(false);
+          setError(msg);
+          return;
+        }
       }
 
       setModel(selectedModel);

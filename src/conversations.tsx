@@ -223,12 +223,21 @@ function ConversationsView() {
   }, []);
 
   const handleDelete = useCallback(async (convId: string) => {
-    await deleteConversation(convId);
-    setConversations((prev) => prev.filter((c) => c.id !== convId));
-    await showToast({
-      style: Toast.Style.Success,
-      title: "Conversation Deleted",
-    });
+    try {
+      await deleteConversation(convId);
+      setConversations((prev) => prev.filter((c) => c.id !== convId));
+      await showToast({
+        style: Toast.Style.Success,
+        title: "Conversation Deleted",
+      });
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Unknown error";
+      await showToast({
+        style: Toast.Style.Failure,
+        title: "Delete Failed",
+        message: msg,
+      });
+    }
   }, []);
 
   const handleExport = useCallback(async (convId: string) => {

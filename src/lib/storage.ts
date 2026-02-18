@@ -56,7 +56,12 @@ export async function getConversation(
 ): Promise<Conversation | null> {
   const raw = await LocalStorage.getItem<string>(`${CONV_PREFIX}${id}`);
   if (!raw) return null;
-  return JSON.parse(raw) as Conversation;
+  try {
+    return JSON.parse(raw) as Conversation;
+  } catch {
+    console.error(`[storage] Corrupted conversation data for ${id}`);
+    return null;
+  }
 }
 
 export async function listConversations(): Promise<ConversationIndexEntry[]> {
@@ -110,5 +115,10 @@ export function generateTitle(messages: ChatMessage[]): string {
 async function getIndex(): Promise<ConversationIndexEntry[]> {
   const raw = await LocalStorage.getItem<string>(INDEX_KEY);
   if (!raw) return [];
-  return JSON.parse(raw) as ConversationIndexEntry[];
+  try {
+    return JSON.parse(raw) as ConversationIndexEntry[];
+  } catch {
+    console.error("[storage] Corrupted conversation index");
+    return [];
+  }
 }

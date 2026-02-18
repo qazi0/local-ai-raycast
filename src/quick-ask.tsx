@@ -138,15 +138,22 @@ function ResponseView({
             icon={Icon.Message}
             shortcut={{ modifiers: ["cmd", "shift"], key: "c" }}
             onAction={async () => {
-              await launchCommand({
-                name: "chat",
-                type: LaunchType.UserInitiated,
-                context: {
-                  initialQuestion: question,
-                  initialResponse: response,
-                  model,
-                },
-              });
+              try {
+                await launchCommand({
+                  name: "chat",
+                  type: LaunchType.UserInitiated,
+                  context: {
+                    initialQuestion: question,
+                    initialResponse: response,
+                    model,
+                  },
+                });
+              } catch {
+                await showToast({
+                  style: Toast.Style.Failure,
+                  title: "Could not open Chat",
+                });
+              }
             }}
           />
           <Action
